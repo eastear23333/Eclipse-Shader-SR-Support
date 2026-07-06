@@ -7,6 +7,12 @@
     "opaqueDrawBuffers": [1, 8],
     "excludeLodsFromVanillaDepth": true,
     "translucentDrawBuffers": [16, 7, 11, 14],
+    #if SR_ENABLE
+    "taaOffset": "{ 
+    return SRJitterOffset * texelSize; 
+    }",
+    "renderScale": [SR_RENDER_SCALE_FACTOR, SR_RENDER_SCALE_FACTOR],
+    #else
     #ifdef TAA
     "taaOffset": "{ 
     const vec2[4] offsets = vec2[4](
@@ -20,6 +26,7 @@
     #endif
     #ifdef TAA_UPSCALING 
     "renderScale": [SCALE_FACTOR, SCALE_FACTOR],
+    #endif
     #endif
     "blending": {-1:"SRC_ALPHA ONE_MINUS_SRC_ALPHA ONE_MINUS_DST_ALPHA ONE", 2:"off"},
     "ssbos": {4:"{
@@ -148,6 +155,10 @@
         "unsigned_WsunVecSmooth",
         "unsigned_WmoonVecSmooth",
         "isEyeInWater"
+        #if SR_ENABLE
+        ,
+        "SRJitterOffset"
+        #endif
     ], 
     "samplers": [
         "vxDepthTexOpaque",
