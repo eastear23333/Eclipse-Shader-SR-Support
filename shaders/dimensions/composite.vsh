@@ -27,6 +27,10 @@ uniform float near;
 
 uniform int framemod8;
 
+#if defined SR_INSTALLED && SR_SHOULD_APPLY_JITTER && SR_ALGO_SUPPORTS_JITTER
+	uniform vec2 SRJitterOffset;
+#endif
+
 #include "/lib/TAA_jitter.glsl"
 
 void main() {
@@ -47,13 +51,15 @@ void main() {
 		#endif
 	#endif
 
-	#ifdef TAA
-		TAA_Offset = offsets[framemod8];
-	#else
-		TAA_Offset = vec2(0.0);
-	#endif
+#if defined SR_INSTALLED && SR_SHOULD_APPLY_JITTER && SR_ALGO_SUPPORTS_JITTER
+	TAA_Offset = SRJitterOffset;
+#elif defined TAA
+	TAA_Offset = offsets[framemod8];
+#else
+	TAA_Offset = vec2(0.0);
+#endif
 
-	#ifdef TAA_UPSCALING
-		gl_Position.xy = (gl_Position.xy*0.5+0.5)*RENDER_SCALE*2.0-1.0;
-	#endif
+#if defined SR_INSTALLED && SR_SHOULD_APPLY_SCALE || defined TAA_UPSCALING
+	gl_Position.xy = (gl_Position.xy*0.5+0.5)*RENDER_SCALE*2.0-1.0;
+#endif
 }

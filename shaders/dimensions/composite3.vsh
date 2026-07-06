@@ -43,7 +43,7 @@ uniform float frameTimeCounter;
 void main() {
 	gl_Position = ftransform();
 
-	gl_Position.xy = (gl_Position.xy*0.5+0.5)*(0.01+VL_RENDER_SCALE)*2.0-1.0;
+	gl_Position.xy = (gl_Position.xy*0.5+0.5)*(0.01+VL_RENDER_SCALE)*RENDER_SCALE*2.0-1.0;
 
 	float lightSourceCheck = float(sunElevation > 1e-5)*2.0 - 1.0;
 

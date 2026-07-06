@@ -101,6 +101,10 @@ uniform mat4 gbufferModelViewInverse;
 uniform vec3 cameraPosition;
 uniform vec2 texelSize;
 
+#if defined SR_INSTALLED && SR_SHOULD_APPLY_JITTER && SR_ALGO_SUPPORTS_JITTER
+	uniform vec2 SRJitterOffset;
+#endif
+
 #if defined HAND
 	uniform mat4 gbufferPreviousModelView;
 	uniform vec3 previousCameraPosition;
@@ -453,10 +457,14 @@ void main() {
 #endif
 
 	#if !defined SHADER_GRASS || defined ENTITIES || defined HAND || defined BLOCKENTITIES || defined CUTOUT
-		#ifdef TAA_UPSCALING
+		#if defined SR_INSTALLED && SR_SHOULD_APPLY_SCALE
+			gl_Position.xy = gl_Position.xy * SR_RENDER_SCALE_FACTOR + (SR_RENDER_SCALE_FACTOR - 1.0) * gl_Position.w;
+		#elif defined TAA_UPSCALING
 			gl_Position.xy = gl_Position.xy * RENDER_SCALE + RENDER_SCALE * gl_Position.w - gl_Position.w;
 		#endif
-		#ifdef TAA
+		#if defined SR_INSTALLED && SR_SHOULD_APPLY_JITTER && SR_ALGO_SUPPORTS_JITTER
+			gl_Position.xy += SRJitterOffset * gl_Position.w * texelSize;
+		#elif defined TAA
 			vec2 TAA_offsets = offsets[framemod8];
 			// #ifdef HAND
 				// turn off jitter when camera moves.

@@ -17,6 +17,10 @@ uniform float nightVision;
 uniform vec2 texelSize;
 uniform int framemod8;
 
+#if defined SR_INSTALLED && SR_SHOULD_APPLY_JITTER && SR_ALGO_SUPPORTS_JITTER
+	uniform vec2 SRJitterOffset;
+#endif
+
 uniform float far;
 
 #if DOF_QUALITY == 5
@@ -87,10 +91,14 @@ void main() {
 
 
 
-	#ifdef TAA_UPSCALING
+	#if defined SR_INSTALLED && SR_SHOULD_APPLY_SCALE
+		gl_Position.xy = gl_Position.xy * SR_RENDER_SCALE_FACTOR + (SR_RENDER_SCALE_FACTOR - 1.0) * gl_Position.w;
+	#elif defined TAA_UPSCALING
 		gl_Position.xy = gl_Position.xy * RENDER_SCALE + RENDER_SCALE * gl_Position.w - gl_Position.w;
 	#endif
-    #if defined TAA && defined DH_TAA_JITTER
+    #if defined SR_INSTALLED && SR_SHOULD_APPLY_JITTER && SR_ALGO_SUPPORTS_JITTER && defined DH_TAA_JITTER
+		gl_Position.xy += SRJitterOffset * gl_Position.w*texelSize;
+    #elif defined TAA && defined DH_TAA_JITTER
 		gl_Position.xy += offsets[framemod4_DH] * gl_Position.w*texelSize;
 	#endif
 	

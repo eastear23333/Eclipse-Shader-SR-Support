@@ -10,9 +10,14 @@
 	*/
 	out vec4 color;
 	out vec2 texcoord;
-	uniform vec2 texelSize;
-	uniform int framemod8;
-	const vec2[8] offsets = vec2[8](vec2(1./8.,-3./8.),
+uniform vec2 texelSize;
+uniform int framemod8;
+
+#if defined SR_INSTALLED && SR_SHOULD_APPLY_JITTER && SR_ALGO_SUPPORTS_JITTER
+	uniform vec2 SRJitterOffset;
+#endif
+
+const vec2[8] offsets = vec2[8](vec2(1./8.,-3./8.),
 								vec2(-1.,3.)/8.,
 								vec2(5.0,1.)/8.,
 								vec2(-3,-5.)/8.,
@@ -30,10 +35,14 @@ void main() {
 
 		color = gl_Color;
 
-		#ifdef TAA_UPSCALING
+		#if defined SR_INSTALLED && SR_SHOULD_APPLY_SCALE
+			gl_Position.xy = gl_Position.xy * SR_RENDER_SCALE_FACTOR + (SR_RENDER_SCALE_FACTOR - 1.0) * gl_Position.w;
+		#elif defined TAA_UPSCALING
 			gl_Position.xy = gl_Position.xy * RENDER_SCALE + RENDER_SCALE * gl_Position.w - gl_Position.w;
 		#endif
-		#ifdef TAA
+		#if defined SR_INSTALLED && SR_SHOULD_APPLY_JITTER && SR_ALGO_SUPPORTS_JITTER
+			gl_Position.xy += SRJitterOffset * gl_Position.w*texelSize;
+		#elif defined TAA
 			gl_Position.xy += offsets[framemod8] * gl_Position.w*texelSize;
 		#endif
 		

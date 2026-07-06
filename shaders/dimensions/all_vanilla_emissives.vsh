@@ -17,6 +17,10 @@ uniform vec2 texelSize;
 uniform int framemod8;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
+
+#if defined SR_INSTALLED && SR_SHOULD_APPLY_JITTER && SR_ALGO_SUPPORTS_JITTER
+	uniform vec2 SRJitterOffset;
+#endif
 #include "/lib/TAA_jitter.glsl"
 
 
@@ -56,10 +60,14 @@ void main() {
 		if(gl_Color.a < 1.0) gl_Position = vec4(10,10,10,0);
 	#endif
 
-	#ifdef TAA_UPSCALING
+	#if defined SR_INSTALLED && SR_SHOULD_APPLY_SCALE
+		gl_Position.xy = gl_Position.xy * SR_RENDER_SCALE_FACTOR + (SR_RENDER_SCALE_FACTOR - 1.0) * gl_Position.w;
+	#elif defined TAA_UPSCALING
 		gl_Position.xy = gl_Position.xy * RENDER_SCALE + RENDER_SCALE * gl_Position.w - gl_Position.w;
 	#endif
-	#ifdef TAA
+	#if defined SR_INSTALLED && SR_SHOULD_APPLY_JITTER && SR_ALGO_SUPPORTS_JITTER
+	    gl_Position.xy += SRJitterOffset * gl_Position.w * texelSize;
+	#elif defined TAA
 	    gl_Position.xy += offsets[framemod8] * gl_Position.w*texelSize;
 	#endif
 }

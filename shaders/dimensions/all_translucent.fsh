@@ -122,6 +122,10 @@ uniform int framemod8;
 uniform float viewWidth;
 uniform float viewHeight;
 
+#if defined SR_INSTALLED && SR_SHOULD_APPLY_JITTER && SR_ALGO_SUPPORTS_JITTER
+	uniform vec2 SRJitterOffset;
+#endif
+
 uniform mat4 gbufferPreviousModelView;
 uniform vec3 previousCameraPosition;
 
@@ -510,12 +514,14 @@ void Emission(
 }
 
 float bias(){
-	// bias mipmapping as window resolution and / or render scale changes.
-	#ifdef TAA_UPSCALING
-		return (1.0 - texelSize.x * 2560.0) + (0.0 - (1.0-RENDER_SCALE.x) * 2.0);
-	#else
-		return 1.0 - texelSize.x * 2560.0;
-	#endif
+// bias mipmapping as window resolution and / or render scale changes.
+#if defined SR_INSTALLED && SR_SHOULD_APPLY_SCALE
+return (1.0 - texelSize.x * 2560.0) + (0.0 - (1.0-SR_RENDER_SCALE_FACTOR) * 2.0);
+#elif defined TAA_UPSCALING
+return (1.0 - texelSize.x * 2560.0) + (0.0 - (1.0-RENDER_SCALE.x) * 2.0);
+#else
+return 1.0 - texelSize.x * 2560.0;
+#endif
 }
 
 #if defined FLASHLIGHT_SHADOWS && defined FLASHLIGHT && defined MAIN_SHADOW_PASS
@@ -596,10 +602,14 @@ if (gl_FragCoord.x * texelSize.x < 1.0  && gl_FragCoord.y * texelSize.y < 1.0 )	
 
 	float BN = blueNoise();
 
-	#ifdef TAA
+	#if defined SR_INSTALLED && SR_SHOULD_APPLY_JITTER && SR_ALGO_SUPPORTS_JITTER
+		vec2 tempOffset = SRJitterOffset;
+		vec3 viewPos = toScreenSpace(FragCoord*vec3(texelSize/RENDER_SCALE,1.0)-vec3(vec2(tempOffset)*texelSize*0.5, 0.0));
+	#elif defined TAA
 		vec2 tempOffset = offsets[framemod8];
 		vec3 viewPos = toScreenSpace(FragCoord*vec3(texelSize/RENDER_SCALE,1.0)-vec3(vec2(tempOffset)*texelSize*0.5, 0.0));
 	#else
+		vec2 tempOffset = vec2(0.0);
 		vec3 viewPos = toScreenSpace(FragCoord*vec3(texelSize/RENDER_SCALE,1.0));
 	#endif
 

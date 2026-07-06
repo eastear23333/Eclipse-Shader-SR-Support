@@ -146,6 +146,10 @@ vec3 toLinear(vec3 sRGB){
 
 uniform int framemod8;
 
+#if defined SR_INSTALLED && SR_SHOULD_APPLY_JITTER && SR_ALGO_SUPPORTS_JITTER
+	uniform vec2 SRJitterOffset;
+#endif
+
 #include "/lib/TAA_jitter.glsl"
 
 #ifdef TAA
@@ -448,8 +452,14 @@ void main() {
 		#endif
 	#endif
 
-	vec2 tempOffset = offsets[framemod8];
-	vec3 viewPos = toScreenSpace(gl_FragCoord.xyz*vec3(texelSize/RENDER_SCALE,1.0)-vec3(vec2(tempOffset)*texelSize*0.5,0.0));
+	#if defined SR_INSTALLED && SR_SHOULD_APPLY_JITTER && SR_ALGO_SUPPORTS_JITTER
+		vec2 tempOffset = SRJitterOffset;
+	#elif defined TAA
+		vec2 tempOffset = offsets[framemod8];
+	#else
+		vec2 tempOffset = vec2(0.0);
+	#endif
+vec3 viewPos = toScreenSpace(gl_FragCoord.xyz*vec3(texelSize/RENDER_SCALE,1.0)-vec3(vec2(tempOffset)*texelSize*0.5,0.0));
 	vec3 feetPlayerPos = mat3(gbufferModelViewInverse) * viewPos;
 	// vec3 feetPlayerPos_normalized = normalize(feetPlayerPos);
 

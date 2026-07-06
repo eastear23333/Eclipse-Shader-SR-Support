@@ -260,8 +260,10 @@ void main() {
 
     gl_Position = toClipSpace3(mat3(gbufferModelView) * vec3(worldpos) + gbufferModelView[3].xyz);
 
-	#ifdef TAA_UPSCALING
-		gl_Position.xy = gl_Position.xy * RENDER_SCALE + RENDER_SCALE * gl_Position.w - gl_Position.w;
-	#endif
+#if defined SR_INSTALLED && SR_SHOULD_APPLY_SCALE
+gl_Position.xy = gl_Position.xy * SR_RENDER_SCALE_FACTOR + (SR_RENDER_SCALE_FACTOR - 1.0) * gl_Position.w;
+#elif defined TAA_UPSCALING
+gl_Position.xy = gl_Position.xy * RENDER_SCALE + RENDER_SCALE * gl_Position.w - gl_Position.w;
+#endif
 
 }

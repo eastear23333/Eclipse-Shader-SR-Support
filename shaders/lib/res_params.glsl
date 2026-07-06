@@ -2,7 +2,17 @@
   #undef TAA_UPSCALING
 #endif
 
-#ifdef TAA_UPSCALING
+// SR (Super Resolution) compatibility
+// When SR is active, TAA_UPSCALING is undefined (via shaders.properties) to
+// prevent the TAA upscaling code path in vertex shaders. Instead, SR_APPLY_SCALE
+// scales geometry to a render-resolution sub-region of the screen-resolution
+// framebuffer. SR reads this sub-region and writes its upscaled output to
+// colortex5 (screen resolution). composite5 (min/max) and composite6 (TAA) are disabled.
+#if defined SR_INSTALLED && SR_SHOULD_APPLY_SCALE
+  // SR is active - use SR-provided render scale factor
+  #define RENDER_SCALE vec2(SR_RENDER_SCALE_FACTOR, SR_RENDER_SCALE_FACTOR)
+  #define UPSCALING_SHARPNENING (2.0 - SR_RENDER_SCALE_FACTOR - SR_RENDER_SCALE_FACTOR)
+#elif defined TAA_UPSCALING
   #define SCALE_FACTOR 0.75  // render resolution multiplier. below 0.5 not recommended [0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.0]
 
   #define RENDER_SCALE vec2(SCALE_FACTOR, SCALE_FACTOR)

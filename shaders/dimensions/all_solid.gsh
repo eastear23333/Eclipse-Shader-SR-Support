@@ -93,6 +93,10 @@ uniform int framemod8;
 uniform vec2 texelSize;
 uniform float frameTimeCounter;
 uniform vec3 relativeEyePosition;
+
+#if defined SR_INSTALLED && SR_SHOULD_APPLY_JITTER && SR_ALGO_SUPPORTS_JITTER
+	uniform vec2 SRJitterOffset;
+#endif
 const float PI48 = 150.796447372*WAVY_SPEED;
 float pi2wt = PI48*frameTimeCounter;
 
@@ -157,10 +161,14 @@ void main() {
                 vertex = toClipSpace3(mat3(gbufferModelView) * vec3(vertex) + gbufferModelView[3].xyz);
             #endif
 
-            #ifdef TAA_UPSCALING
+            #if defined SR_INSTALLED && SR_SHOULD_APPLY_SCALE
+                vertex.xy = vertex.xy * SR_RENDER_SCALE_FACTOR + (SR_RENDER_SCALE_FACTOR - 1.0) * vertex.w;
+            #elif defined TAA_UPSCALING
                 vertex.xy = vertex.xy * RENDER_SCALE + RENDER_SCALE * vertex.w - vertex.w;
             #endif
-            #ifdef TAA
+            #if defined SR_INSTALLED && SR_SHOULD_APPLY_JITTER && SR_ALGO_SUPPORTS_JITTER
+                vertex.xy += SRJitterOffset * vertex.w*texelSize;
+            #elif defined TAA
                 // #ifdef HAND
                     // turn off jitter when camera moves.
                     // this is to hide the jitter when the same happens for TAA blend factor and the jitter becomes visible during camera movement
@@ -398,10 +406,14 @@ void main() {
 
                     gl_Position = toClipSpace3(mat3(gbufferModelView) * (verticies[3*j+i]) + gbufferModelView[3].xyz);
 
-                    #ifdef TAA_UPSCALING
+                    #if defined SR_INSTALLED && SR_SHOULD_APPLY_SCALE
+                        gl_Position.xy = gl_Position.xy * SR_RENDER_SCALE_FACTOR + (SR_RENDER_SCALE_FACTOR - 1.0) * gl_Position.w;
+                    #elif defined TAA_UPSCALING
                         gl_Position.xy = gl_Position.xy * RENDER_SCALE + RENDER_SCALE * gl_Position.w - gl_Position.w;
                     #endif
-                    #ifdef TAA
+                    #if defined SR_INSTALLED && SR_SHOULD_APPLY_JITTER && SR_ALGO_SUPPORTS_JITTER
+                        gl_Position.xy += SRJitterOffset * gl_Position.w*texelSize;
+                    #elif defined TAA
                         // #ifdef HAND
                             // turn off jitter when camera moves.
                             // this is to hide the jitter when the same happens for TAA blend factor and the jitter becomes visible during camera movement

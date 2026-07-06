@@ -23,6 +23,8 @@ const int colortex13Format = RGBA16F;				// low res VL (composite5->composite15)
 const int colortex14Format = RGBA16;				// rg = SSAO and SS-SSS. z = skylightmap for translucents.
 const int colortex15Format = R11F_G11F_B10F;		// PHOTONICS GI
 
+const int colortex17Format = RG16F;					// SR motion vectors (RG channels, UV space)
+
 #ifdef VOXY
 	const int colortex16Format = RGBA16F;				// voxy translucent stuff...
 #endif
@@ -45,7 +47,11 @@ const bool colortex12Clear = false;
 const bool colortex13Clear = false;
 const bool colortex14Clear = true;
 const bool colortex15Clear = true;
-const bool colortex17Clear = false;
+#if defined SR_INSTALLED && SR_SHOULD_APPLY_SCALE
+	const bool colortex17Clear = true;
+#else
+	const bool colortex17Clear = false;
+#endif
 const bool colortex18Clear = false;
 #ifdef VOXY
 	const bool colortex16Clear = true;
@@ -442,7 +448,11 @@ vec4 computeTAA(vec2 texcoord, bool hand){
 
 void main() {
 /* RENDERTARGETS:5 */
-	#ifdef TAA
+	#if defined SR_INSTALLED && SR_SHOULD_APPLY_SCALE
+		// SR mode: skip TAA, do simple linear upscale as fallback
+		vec3 color = texture(colortex3, texcoord * RENDER_SCALE).rgb;
+		gl_FragData[0] = clamp(fp10Dither(vec4(color, 1.0), triangularize(interleaved_gradientNoise())), 0.0, 65000.0);
+	#elif defined TAA
 		vec2 taauTC = clamp(texcoord*RENDER_SCALE, vec2(0.0), RENDER_SCALE - texelSize*2.0);
 		
 		float dataUnpacked = decodeVec2(texelFetch(colortex1,ivec2(gl_FragCoord.xy*RENDER_SCALE),0).w).y; 

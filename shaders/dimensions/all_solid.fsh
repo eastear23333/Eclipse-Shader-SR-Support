@@ -61,6 +61,10 @@ const float   MAX_OCCLUSION_POINTS_DIV = 1.0 / MAX_OCCLUSION_POINTS;
 uniform vec2 texelSize;
 uniform int framemod8;
 
+#if defined SR_INSTALLED && SR_SHOULD_APPLY_JITTER && SR_ALGO_SUPPORTS_JITTER
+	uniform vec2 SRJitterOffset;
+#endif
+
 #if defined POM && (defined WORLD && !defined ENTITIES && !defined HAND || defined COLORWHEEL)
 	vec2 dcdx = dFdx(data_in.texcoord.st*data_in.texcoordam.pq);
 	vec2 dcdy = dFdy(data_in.texcoord.st*data_in.texcoordam.pq);
@@ -305,7 +309,9 @@ float ld(float dist) {
 
 float bias(){
 	// bias mipmapping as window resolution and / or render scale changes.
-	#ifdef TAA_UPSCALING
+	#if defined SR_INSTALLED && SR_SHOULD_APPLY_SCALE
+		return (1.0 - texelSize.x * 2560.0) + (0.0 - (1.0-SR_RENDER_SCALE_FACTOR) * 2.0);
+	#elif defined TAA_UPSCALING
 		return (1.0 - texelSize.x * 2560.0) + (0.0 - (1.0-RENDER_SCALE.x) * 2.0);
 	#else
 		return 1.0 - texelSize.x * 2560.0;
@@ -461,7 +467,13 @@ void main() {
 	float BN = blueNoise();
 	float R2 = R2_dither();
 
-	vec2 tempOffset = offsets[framemod8];
+	#if defined SR_INSTALLED && SR_SHOULD_APPLY_JITTER && SR_ALGO_SUPPORTS_JITTER
+		vec2 tempOffset = SRJitterOffset;
+	#elif defined TAA
+		vec2 tempOffset = offsets[framemod8];
+	#else
+		vec2 tempOffset = vec2(0.0);
+	#endif
 
 	vec3 fragpos = toScreenSpace(FragCoord*vec3(texelSize/RENDER_SCALE,1.0)-vec3(vec2(tempOffset)*texelSize*0.5, 0.0));
 	vec3 playerpos = mat3(gbufferModelViewInverse) * fragpos  + gbufferModelViewInverse[3].xyz;

@@ -538,7 +538,7 @@ float getBorderFogDensity(float linearDistance, vec3 playerPos, bool sky){
 #endif
 
 void main() {
-  /* RENDERTARGETS:7,3,10 */
+  /* RENDERTARGETS:7,3,10,17 */
 
 	////// --------------- SETUP STUFF --------------- //////
   vec2 texcoord = gl_FragCoord.xy*texelSize;
@@ -950,6 +950,20 @@ void main() {
   #endif
   gl_FragData[0] = vec4(bloomyFogMult,0.0,0.0,1.0); // pass fog alpha so bloom can do bloomy fog
   gl_FragData[1].rgb = clamp(color.rgb, 0.0,68000.0);
+
+  // SR Motion vectors: prevUV - currUV
+  #if defined SR_INSTALLED && SR_SHOULD_APPLY_SCALE
+    vec3 sr_playerPos_prev = playerPos + (cameraPosition - previousCameraPosition);
+    vec3 sr_prevViewPos = mat3(gbufferPreviousModelView) * sr_playerPos_prev + gbufferPreviousModelView[3].xyz;
+    #if defined DISTANT_HORIZONS || defined VOXY
+      vec3 sr_prevClipPos = toClipSpace3Prev_DH(sr_prevViewPos, isDHrange);
+    #else
+      vec3 sr_prevClipPos = toClipSpace3Prev(sr_prevViewPos);
+    #endif
+    vec2 sr_currUV = texcoord / RENDER_SCALE;
+    vec2 sr_motionVec = sr_prevClipPos.xy - sr_currUV;
+    gl_FragData[3] = vec4(sr_motionVec, 0.0, 0.0);
+  #endif
 
   // gl_FragData[1].rgb =  vec3(tangentNormals.xy,0.0) * 0.1  ;
   // gl_FragData[1].rgb =  vec3(1.0) * ld(    (data.a > 0.0 ? data.a : texture(depthtex0, texcoord).x   )              )   ;
