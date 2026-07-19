@@ -953,15 +953,23 @@ void main() {
 
   // SR Motion vectors: prevUV - currUV
   #if defined SR_INSTALLED && SR_SHOULD_APPLY_SCALE
-    vec3 sr_playerPos_prev = playerPos + (cameraPosition - previousCameraPosition);
-    vec3 sr_prevViewPos = mat3(gbufferPreviousModelView) * sr_playerPos_prev + gbufferPreviousModelView[3].xyz;
-    #if defined DISTANT_HORIZONS || defined VOXY
-      vec3 sr_prevClipPos = toClipSpace3Prev_DH(sr_prevViewPos, isDHrange);
-    #else
-      vec3 sr_prevClipPos = toClipSpace3Prev(sr_prevViewPos);
-    #endif
-    vec2 sr_currUV = texcoord / RENDER_SCALE;
-    vec2 sr_motionVec = sr_prevClipPos.xy - sr_currUV;
+    vec2 sr_motionVec;
+    if (hand) {
+      // 手部相对屏幕固定,运动矢量必须为 0,否则 SR 会从历史帧错位位置
+      // 采样颜色,导致手部区域出现鬼影(与 TAA computeTAA 中
+      // `hand ? vec2(0.0) : velocity` 的处理保持一致)
+      sr_motionVec = vec2(0.0);
+    } else {
+      vec3 sr_playerPos_prev = playerPos + (cameraPosition - previousCameraPosition);
+      vec3 sr_prevViewPos = mat3(gbufferPreviousModelView) * sr_playerPos_prev + gbufferPreviousModelView[3].xyz;
+      #if defined DISTANT_HORIZONS || defined VOXY
+        vec3 sr_prevClipPos = toClipSpace3Prev_DH(sr_prevViewPos, isDHrange);
+      #else
+        vec3 sr_prevClipPos = toClipSpace3Prev(sr_prevViewPos);
+      #endif
+      vec2 sr_currUV = texcoord / RENDER_SCALE;
+      sr_motionVec = sr_prevClipPos.xy - sr_currUV;
+    }
     gl_FragData[3] = vec4(sr_motionVec, 0.0, 0.0);
   #endif
 
