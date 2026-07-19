@@ -19,6 +19,9 @@ Notable changes/additions compared to Bliss unstable:
  + 1.21.11 Chunk Fade In support
  + Emissive Ores and Trims
 
+New additions to Eclipse-Shader-SR-Support:
+ +Add SuperResolution module support to Eclipse(Allows it to enable FSR3 performance mode in the working environment of the NVIDIA GTX 1660 Ti for up to 50% FPS boost)
+
 Note: With default settings there is at least one guaranteed eclipse per ingame year.
 
 ## Eclipses <sub>(why else would I call the shader Eclipse??)</sub>
@@ -82,6 +85,7 @@ Note: With default settings there is at least one guaranteed eclipse per ingame 
 - Particle Rain
 - Physics Mod (Smoke, Fluid Sim and Weather)
 - Flerovium
+- Photonics: A raytracing engine(When SuperResolution is enabled, it will work abnormally.)
 
 # You want MOAR performance?
 > [!NOTE]  
