@@ -8,7 +8,7 @@
       },
       "upscale": {
         "enabled": true,
-        "internal_format": "rgba16f"
+        "internal_format": "rgba16f",
         "auto_exposure": true,
         "hdr": true,
         "motion_jittered": false,
