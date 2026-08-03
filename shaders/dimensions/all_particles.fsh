@@ -208,6 +208,8 @@ float ComputeShadowMap(inout vec3 directLightColor, vec3 playerPos, float maxDis
 	float shadowmap = 0.0;
 	vec3 translucentTint = vec3(0.0);
 
+	if (projectedShadowPosition.z > 1.0 || projectedShadowPosition.z < 0.0) return 1.0;
+
 	#ifdef TRANSLUCENT_COLORED_SHADOWS
 
 		// determine when opaque shadows are overlapping translucent shadows by getting the difference of opaque depth and translucent depth
@@ -459,7 +461,7 @@ void main() {
 	#else
 		vec2 tempOffset = vec2(0.0);
 	#endif
-vec3 viewPos = toScreenSpace(gl_FragCoord.xyz*vec3(texelSize/RENDER_SCALE,1.0)-vec3(vec2(tempOffset)*texelSize*0.5,0.0));
+	vec3 viewPos = toScreenSpace(gl_FragCoord.xyz*vec3(texelSize/RENDER_SCALE,1.0)-vec3(vec2(tempOffset)*texelSize*0.5,0.0));
 	vec3 feetPlayerPos = mat3(gbufferModelViewInverse) * viewPos;
 	// vec3 feetPlayerPos_normalized = normalize(feetPlayerPos);
 
@@ -680,7 +682,7 @@ vec3 viewPos = toScreenSpace(gl_FragCoord.xyz*vec3(texelSize/RENDER_SCALE,1.0)-v
 
 	normal = applyBump(tbnMatrix, NormalTex.xyz);
 	
-	vec2 lightmap = clamp(lmtexcoord.zw,0.0,0.97);
+	vec2 lightmap = clamp(lmtexcoord.zw,0.0,1.0);
 	
 	vec4 data1 = vec4(encodeNormal(normal), lightmap);
 

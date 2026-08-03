@@ -448,11 +448,11 @@ vec4 computeTAA(vec2 texcoord, bool hand){
 
 void main() {
 /* RENDERTARGETS:5 */
-	#if defined SR_INSTALLED && SR_SHOULD_APPLY_SCALE
-		// SR mode: skip TAA, do simple linear upscale as fallback
-		vec3 color = texture(colortex3, texcoord * RENDER_SCALE).rgb;
-		gl_FragData[0] = clamp(fp10Dither(vec4(color, 1.0), triangularize(interleaved_gradientNoise())), 0.0, 65000.0);
-	#elif defined TAA
+#if defined SR_INSTALLED && SR_SHOULD_APPLY_SCALE
+	// SR mode: skip TAA, do simple linear upscale as fallback
+	vec3 color = texture(colortex3, texcoord * RENDER_SCALE).rgb;
+	gl_FragData[0] = clamp(fp10Dither(vec4(color, 1.0), triangularize(interleaved_gradientNoise())), 0.0, 65000.0);
+#elif defined TAA
 		vec2 taauTC = clamp(texcoord*RENDER_SCALE, vec2(0.0), RENDER_SCALE - texelSize*2.0);
 		
 		float dataUnpacked = decodeVec2(texelFetch(colortex1,ivec2(gl_FragCoord.xy*RENDER_SCALE),0).w).y; 
