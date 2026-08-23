@@ -871,8 +871,8 @@ uniform float wetness;
 
 				vec2 driprate = vec2(0.0,frameTimeCounter)*0.05;
 
-				vec2 UV = mix(worldPos.xz, worldPos.xy*vec2(2.0, 0.5)+driprate, abs(flatNormals.z));
-				UV = mix(UV, worldPos.zy*vec2(2.0, 0.5)+driprate, abs(flatNormals.x));
+				vec2 UV = mix(worldPos.xz, worldPos.xy*vec2(2.0, 0.5)+driprate, pow(abs(flatNormals.z),2));
+				UV = mix(UV, worldPos.zy*vec2(2.0, 0.5)+driprate, pow(abs(flatNormals.x),2));
 
 				#ifdef SHADER_GRASS
 				if(isShaderGrass) UV = worldPos.xz;
@@ -984,10 +984,14 @@ float encodeVec2(float x,float y){
     return encodeVec2(vec2(x,y));
 }
 
+vec2 signNotZero(vec2 v) {
+    return step(vec2(0.0), v) * 2.0 - 1.0;
+}
+
 vec2 encodeNormal(vec3 n){
 	n.xy = n.xy / dot(abs(n), vec3(1.0));
-	n.xy = n.z <= 0.0 ? (1.0 - abs(n.yx)) * sign(n.xy) : n.xy;
-    vec2 encn = clamp(n.xy * 0.5 + 0.5,-1.0,1.0);
+	n.xy = n.z <= 0.0 ? (1.0 - abs(n.yx)) * signNotZero(n.xy) : n.xy;
+    vec2 encn = clamp(n.xy * 0.5 + 0.5,0.0,1.0);
 	
     return encn;
 }
@@ -1141,7 +1145,8 @@ void main() {
 			const float POM_DEEPNESS = 0.0;
 		#endif
 		// bool handwater = abs(translucentMasks-0.3) < 0.01 ;
-		bool opaqueParticles = abs(opaqueMasks-0.85) <0.01;
+		bool opaqueParticles = abs(opaqueMasks-0.85) < 0.01;
+		bool glowframe = abs(opaqueMasks-0.9) < 0.01;
 
 		if(hand){
 			convertHandDepth(z);
@@ -1591,7 +1596,7 @@ void main() {
 			const vec3 lpvPos = vec3(0.0);
 		#endif
 		
-		vec3 blockLightColor = doBlockLightLighting(vec3(TORCH_R,TORCH_G,TORCH_B), lightmap.x, feetPlayerPos, lpvPos, viewPos, isDHrange, blueNoise(), FlatNormals, hand, opaqueParticles);
+		vec3 blockLightColor = doBlockLightLighting(vec3(TORCH_R,TORCH_G,TORCH_B), lightmap.x, feetPlayerPos, lpvPos, viewPos, isDHrange, blueNoise(), FlatNormals, hand, glowframe, opaqueParticles);
 		Indirect_lighting += blockLightColor;
 
 		vec4 flashLightSpecularData = vec4(0.0);

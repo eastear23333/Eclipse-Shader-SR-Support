@@ -136,6 +136,8 @@ vec3 getWaveNormal(vec3 posxz, float range){
 	uniform float caveDetection;
 #endif
 
+uniform int currentRenderedItemId;
+
 //////////////////////////////VOID MAIN//////////////////////////////
 //////////////////////////////VOID MAIN//////////////////////////////
 //////////////////////////////VOID MAIN//////////////////////////////
@@ -251,15 +253,16 @@ void main() {
 	#endif
 
 	// translucent blocks
-	if (mc_Entity.x >= 301 && mc_Entity.x <= 338) mat = 0.1;
+	if (mc_Entity.x >= 301 && mc_Entity.x <= 338 || currentRenderedItemId >= 301 && currentRenderedItemId <= 338) mat = 0.1;
 
 	// if (mc_Entity.x == BLOCK_NETHER_PORTAL) mat = 0.6;
 
-	if (mc_Entity.x == WISPJELLY) lmtexcoord.z = 0.0;
+	if (mc_Entity.x == WISPJELLY || currentRenderedItemId== WISPJELLY) lmtexcoord.z = 0.0;
 
 	#if defined ENTITIES && defined IS_IRIS
 		NAMETAG = 0;
 		if (entityId == 1600) NAMETAG = 1;
+		else if (entityId == 1615) NAMETAG = 2;
 	#endif
 	
 
